@@ -3,7 +3,7 @@ resolver: lts-8.5
 packages:
 - location: .
 - location:
-    git: git@github.com:timbod7/adl.git
+    git: git@github.com:anuraags/adl.git
     commit: 62088ca7caf55bbf1ad7192e770f387d521747f0
   subdirs:
   - haskell/utils
