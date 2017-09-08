@@ -5,22 +5,22 @@ module ADL.Sql.SchemaUtils
   , columnFromField
   ) where
 
-import qualified Data.Aeson as JS
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.Vector as V
+import qualified Data.Aeson              as JS
+import qualified Data.HashMap.Strict     as HM
+import qualified Data.Map                as M
+import qualified Data.Text               as T
+import qualified Data.Vector             as V
 
-import ADL.Compiler.Primitive
-import ADL.Compiler.AST
-import ADL.Compiler.Processing
-import ADL.Utils.IndentedCode
-import ADL.Utils.Format
-import ADL.Sql.Schema
-import Data.List(intersperse)
-import Data.Monoid
-import Cases(snakify)
-import Data.Maybe(mapMaybe)
+import           ADL.Compiler.AST
+import           ADL.Compiler.Primitive
+import           ADL.Compiler.Processing
+import           ADL.Sql.Schema
+import           ADL.Utils.Format
+import           ADL.Utils.IndentedCode
+import           Cases                   (snakify)
+import           Data.List               (intersperse)
+import           Data.Maybe              (mapMaybe)
+import           Data.Monoid
 
 type RTypeExpr = TypeExpr ResolvedType
 type RField = Field ResolvedType
@@ -96,23 +96,23 @@ mkTable mkColumn (decl,struct,ann) = Table
   }
   where
     tableName = case getLiteralField ann "tableName" of
-      Nothing -> dbName (d_name decl)
+      Nothing    -> dbName (d_name decl)
       (Just lit) -> fromLitString lit
 
     uconstraints :: [[T.Text]]
     uconstraints = case getLiteralField ann "uniquenessConstraints" of
-      Nothing -> []
+      Nothing  -> []
       Just lit ->  fromLitArray (fromLitArray fromLitString) lit
 
     indexes :: [[T.Text]]
     indexes = case getLiteralField ann "indexes" of
-      Nothing -> []
+      Nothing  -> []
       Just lit ->  fromLitArray (fromLitArray fromLitString) lit
 
     idColumn :: [Column]
     idColumn = case getLiteralField ann "withIdPrimaryKey" of
       Just (JS.Bool True) ->  [Column "id" "text" "" True True Nothing]
-      _ -> []
+      _                   -> []
 
     setPrimaryKey :: Column -> Column
     setPrimaryKey col = case getLiteralField ann "withPrimaryKey" of
@@ -181,18 +181,18 @@ createBoundTypeVariables btv names types = M.union btv (M.fromList (zip names ty
 
 primColumnType p =  case p of
   P_String -> "text"
-  P_Int8 -> "smalllint"
-  P_Int16 -> "smalllint"
-  P_Int32 -> "integer"
-  P_Int64 -> "bigint"
-  P_Word8 -> "smalllint"
+  P_Int8   -> "smalllint"
+  P_Int16  -> "smalllint"
+  P_Int32  -> "integer"
+  P_Int64  -> "bigint"
+  P_Word8  -> "smalllint"
   P_Word16 -> "smalllint"
   P_Word32 -> "integer"
   P_Word64 -> "bigint"
-  P_Float -> "real"
+  P_Float  -> "real"
   P_Double -> "double precision"
-  P_Bool -> "boolean"
-  _ -> "json"
+  P_Bool   -> "boolean"
+  _        -> "json"
 
 -- match structs that are annotated to be
 -- database tables
@@ -200,7 +200,7 @@ matchDBTable :: RDecl -> Maybe DBTable
 matchDBTable decl = case d_type decl of
   (Decl_Struct struct) ->
     case getAnnotation decl dbTableType of
-      Nothing -> Nothing
+      Nothing           -> Nothing
       (Just annotation) -> Just (decl,struct,annotation)
   _ -> Nothing
 
@@ -229,11 +229,11 @@ dbName = snakify
 
 getLiteralField :: JS.Value -> T.Text -> Maybe JS.Value
 getLiteralField (JS.Object map) field = HM.lookup field map
-getLiteralField _ _ = Nothing
+getLiteralField _ _                   = Nothing
 
 withCommas :: [a] -> [(a,T.Text)]
-withCommas [] = []
-withCommas [l] = [(l," ")]
+withCommas []     = []
+withCommas [l]    = [(l," ")]
 withCommas (l:ls) = (l,","):withCommas ls
 
 dbTableType = ScopedName (ModuleName ["common","db"]) "DbTable"
